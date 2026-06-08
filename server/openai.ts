@@ -2,7 +2,7 @@ function requireOpenAIKey() {
   const key = process.env.OPENAI_API_KEY
   if (!key) {
     throw new Error(
-      'OPENAI_API_KEY가 설정되지 않았습니다. .env 파일에 추가해 주세요.',
+      'OPENAI_API_KEY가 설정되지 않았습니다. 로컬에서는 .env에, Vercel에서는 Project Settings → Environment Variables에 추가한 뒤 재배포해 주세요.',
     )
   }
   return key

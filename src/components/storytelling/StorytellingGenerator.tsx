@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { StudentSelect } from '@/components/shared/StudentSelect'
 import { StorytellingWorksheet } from '@/components/storytelling/StorytellingWorksheet'
+import { useAuth } from '@/contexts/AuthContext'
 import { generateStorytelling, saveStorytellingMaterial } from '@/lib/api'
 import { downloadSectionsAsPdf } from '@/lib/downloadPdf'
 import type {
@@ -33,6 +34,7 @@ interface StorytellingGeneratorProps {
 }
 
 export function StorytellingGenerator({ students }: StorytellingGeneratorProps) {
+  const { isDemo } = useAuth()
   const [studentId, setStudentId] = useState('')
   const [subject, setSubject] = useState<Subject>('국어')
   const [learningGoal, setLearningGoal] = useState('')
@@ -104,6 +106,10 @@ export function StorytellingGenerator({ students }: StorytellingGeneratorProps) 
 
   const handleSave = async () => {
     if (!selectedStudent || !result) return
+    if (isDemo) {
+      setError('데모 모드에서는 저장할 수 없습니다. 회원가입 후 이용해 주세요.')
+      return
+    }
 
     setSaving(true)
     setError(null)

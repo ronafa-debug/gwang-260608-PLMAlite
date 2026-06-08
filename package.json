@@ -15,6 +15,8 @@
     "supabase:verify": "powershell -ExecutionPolicy Bypass -File ./scripts/verify-env.ps1",
     "env:create": "powershell -ExecutionPolicy Bypass -File ./scripts/create-env.ps1",
     "supabase:deploy": "scripts\\deploy.cmd",
+    "vercel:env": "powershell -ExecutionPolicy Bypass -File ./scripts/sync-vercel-env.ps1",
+    "vercel:deploy": "vercel --prod",
     "dev:cmd": "node ./node_modules/vite/bin/vite.js"
   },
   "dependencies": {

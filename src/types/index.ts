@@ -1,5 +1,6 @@
 export interface Student {
   id: string
+  user_id?: string
   name: string
   grade: string
   favorite_character: string

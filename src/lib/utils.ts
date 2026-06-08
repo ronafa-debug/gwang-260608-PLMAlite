@@ -23,6 +23,19 @@ export function formatDateTime(dateString: string) {
   })
 }
 
+export function formatRelativeDate(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diffDays = Math.floor((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return '오늘'
+  if (diffDays === 1) return '어제'
+  if (diffDays < 7) return `${diffDays}일 전`
+  return formatDate(dateString)
+}
+
 /** A4 그림일기 한 줄 칸 수 */
 export const DIARY_BOXES_PER_ROW = 12
 

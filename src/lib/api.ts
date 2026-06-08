@@ -14,6 +14,18 @@ import type {
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 
+async function requireUserId() {
+  const client = requireSupabase()
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser()
+  if (error || !user) {
+    throw new Error('로그인이 필요합니다.')
+  }
+  return user.id
+}
+
 async function invokeFunction<T>(name: string, body: Record<string, unknown>): Promise<T> {
   const response = await fetch(`/api/${name}`, {
     method: 'POST',
@@ -47,9 +59,10 @@ export async function fetchStudents(): Promise<Student[]> {
 
 export async function createStudent(input: StudentInput): Promise<Student> {
   const client = requireSupabase()
+  const userId = await requireUserId()
   const { data, error } = await client
     .from('students')
-    .insert(input)
+    .insert({ ...input, user_id: userId })
     .select()
     .single()
 
@@ -88,13 +101,15 @@ export async function generateStorytelling(
 }
 
 export async function saveStorytellingMaterial(
-  payload: Omit<StorytellingMaterial, 'id' | 'created_at' | 'students'>,
+  payload: Omit<StorytellingMaterial, 'id' | 'created_at' | 'students' | 'user_id'>,
 ): Promise<StorytellingMaterial> {
   const client = requireSupabase()
+  const userId = await requireUserId()
   const { data, error } = await client
     .from('storytelling_materials')
     .insert({
       ...payload,
+      user_id: userId,
       worksheet_content: payload.worksheet_content,
     })
     .select('*, students(name)')
@@ -121,6 +136,7 @@ export type DiaryMaterialInput = Omit<
 
 export async function saveDiaryMaterial(payload: DiaryMaterialInput): Promise<DiaryMaterial> {
   const client = requireSupabase()
+  const userId = await requireUserId()
   const { data, error } = await client
     .from('diary_materials')
     .insert({
@@ -129,6 +145,7 @@ export async function saveDiaryMaterial(payload: DiaryMaterialInput): Promise<Di
       raw_input: payload.raw_input,
       final_text: payload.final_text,
       image_url: payload.image_url,
+      user_id: userId,
     })
     .select('*, students(name)')
     .single()

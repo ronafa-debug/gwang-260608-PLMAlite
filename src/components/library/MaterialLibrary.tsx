@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Download, Eye, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Dialog,
@@ -14,17 +14,20 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { StorytellingWorksheet } from '@/components/storytelling/StorytellingWorksheet'
 import { MaterialPdfLayer } from '@/components/library/MaterialPdfLayer'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   deleteDiaryMaterial,
   deleteStorytellingMaterial,
   fetchDiaryMaterials,
   fetchStorytellingMaterials,
 } from '@/lib/api'
+import { getStorageItem, setStorageItem } from '@/lib/storage'
 import { downloadMaterialPdf, waitForImages } from '@/lib/materialPdf'
 import { formatDateTime } from '@/lib/utils'
 import type { DiaryMaterial, LibraryItem, StorytellingMaterial } from '@/types'
 
 export function MaterialLibrary() {
+  const { isDemo } = useAuth()
   const [items, setItems] = useState<LibraryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +41,13 @@ export function MaterialLibrary() {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+
+    if (isDemo) {
+      setItems(getStorageItem<LibraryItem[]>('demo_library', []))
+      setLoading(false)
+      return
+    }
+
     try {
       const [storytelling, diary] = await Promise.all([
         fetchStorytellingMaterials(),
@@ -58,7 +68,7 @@ export function MaterialLibrary() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isDemo])
 
   useEffect(() => {
     void load()
@@ -119,12 +129,17 @@ export function MaterialLibrary() {
     if (!window.confirm('이 자료를 삭제할까요?')) return
 
     try {
-      if (item.type === 'storytelling') {
+      if (isDemo) {
+        const next = items.filter((current) => current.data.id !== item.data.id)
+        setStorageItem('demo_library', next)
+        setItems(next)
+      } else if (item.type === 'storytelling') {
         await deleteStorytellingMaterial(item.data.id)
+        setItems((prev) => prev.filter((current) => current.data.id !== item.data.id))
       } else {
         await deleteDiaryMaterial(item.data.id)
+        setItems((prev) => prev.filter((current) => current.data.id !== item.data.id))
       }
-      setItems((prev) => prev.filter((current) => current.data.id !== item.data.id))
       if (previewItem?.data.id === item.data.id) setPreviewItem(null)
     } catch (err) {
       window.alert(err instanceof Error ? err.message : '삭제에 실패했습니다.')
@@ -147,24 +162,21 @@ export function MaterialLibrary() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <CardTitle>자료 라이브러리</CardTitle>
-          <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4" />
-            새로고침
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
+      <Card className="border-0 shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="pl-9"
+              className="rounded-xl pl-9"
               placeholder="학생명, 제목, 학습목표로 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
+            <RefreshCw className="h-4 w-4" />
+            새로고침
+          </Button>
         </CardContent>
       </Card>
 
@@ -183,7 +195,7 @@ export function MaterialLibrary() {
       {!loading && !error && filteredItems.length > 0 ? (
         <div className="grid gap-4">
           {filteredItems.map((item) => (
-            <Card key={`${item.type}-${item.data.id}`}>
+            <Card key={`${item.type}-${item.data.id}`} className="border-0 shadow-sm">
               <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">

@@ -6,7 +6,7 @@ function getServiceClient() {
 
   if (!url || !key) {
     throw new Error(
-      'SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다. Supabase 대시보드 → Project Settings → API → service_role 키를 .env에 추가해 주세요.',
+      'SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다. Supabase 대시보드 → Project Settings → API에서 service_role 키를 확인한 뒤, 로컬 .env 또는 Vercel Environment Variables에 추가하고 재배포해 주세요.',
     )
   }
 

@@ -11,6 +11,7 @@ import {
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { StudentSelect } from '@/components/shared/StudentSelect'
+import { useAuth } from '@/contexts/AuthContext'
 import { generateDiary, saveDiaryMaterial } from '@/lib/api'
 import { downloadSectionsAsPdf } from '@/lib/downloadPdf'
 import { DIARY_PDF_WIDTH } from '@/lib/utils'
@@ -21,6 +22,7 @@ interface DiaryGeneratorProps {
 }
 
 export function DiaryGenerator({ students }: DiaryGeneratorProps) {
+  const { isDemo } = useAuth()
   const [studentId, setStudentId] = useState('')
   const [rawInput, setRawInput] = useState('')
   const [result, setResult] = useState<DiaryGenerateResponse | null>(null)
@@ -89,6 +91,10 @@ export function DiaryGenerator({ students }: DiaryGeneratorProps) {
 
   const handleSave = async () => {
     if (!selectedStudent || !result) return
+    if (isDemo) {
+      setError('데모 모드에서는 저장할 수 없습니다. 회원가입 후 이용해 주세요.')
+      return
+    }
 
     setSaving(true)
     setError(null)
