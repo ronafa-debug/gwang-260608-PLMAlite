@@ -1,12 +1,15 @@
 import {
   BarChart3,
   BookOpen,
+  ClipboardList,
   FolderOpen,
   LayoutDashboard,
   Leaf,
   Settings,
-  Users,
+  ShoppingBag,
   Sparkles,
+  Users,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AppPage } from '@/types/navigation'
@@ -16,6 +19,8 @@ const navItems: Array<{ id: AppPage; label: string; icon: typeof LayoutDashboard
   { id: 'students', label: '학생 관리', icon: Users },
   { id: 'generate', label: '학습 자료 생성', icon: Sparkles },
   { id: 'library', label: '자료 라이브러리', icon: FolderOpen },
+  { id: 'store', label: '스토어', icon: ShoppingBag },
+  { id: 'orders', label: '내 주문', icon: ClipboardList },
   { id: 'reports', label: '리포트', icon: BarChart3 },
   { id: 'settings', label: '설정', icon: Settings },
 ]
@@ -23,9 +28,18 @@ const navItems: Array<{ id: AppPage; label: string; icon: typeof LayoutDashboard
 interface SidebarProps {
   activePage: AppPage
   onNavigate: (page: AppPage) => void
+  isAdmin?: boolean
 }
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export function Sidebar({ activePage, onNavigate, isAdmin = false }: SidebarProps) {
+  const items = isAdmin
+    ? [
+        ...navItems.slice(0, 6),
+        { id: 'admin_orders' as const, label: '주문 관리', icon: Shield },
+        ...navItems.slice(6),
+      ]
+    : navItems
+
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border/80 bg-sidebar px-4 py-6">
       <div className="mb-8 flex items-center gap-3 px-2">
@@ -39,7 +53,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {navItems.map(({ id, label, icon: Icon }) => {
+        {items.map(({ id, label, icon: Icon }) => {
           const active = activePage === id
           return (
             <button

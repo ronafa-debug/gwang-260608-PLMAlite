@@ -3,6 +3,9 @@ export type AppPage =
   | 'students'
   | 'generate'
   | 'library'
+  | 'store'
+  | 'orders'
+  | 'admin_orders'
   | 'reports'
   | 'settings'
 

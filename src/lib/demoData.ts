@@ -6,6 +6,7 @@ export const DEMO_USER = {
   id: DEMO_USER_ID,
   name: '김선생님',
   email: 'demo@plma.app',
+  role: 'admin' as const,
 }
 
 export const mockStudents: Student[] = [

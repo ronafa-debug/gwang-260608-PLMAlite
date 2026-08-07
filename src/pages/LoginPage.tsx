@@ -53,28 +53,28 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="space-y-6">
-          <h2 className="text-4xl font-bold leading-tight">
-            아이들이 좋아하는 것으로
-            <br />
-            배우는 즐거운 교실
-          </h2>
-          <p className="max-w-md text-lg leading-relaxed text-white/80">
-            스토리텔링 학습지와 그림일기로
-            <br />
-            학생 맞춤형 학습 자료를 만들어 보세요.
-          </p>
-          <div className="flex gap-3">
-            {['📖 스토리텔링', '📝 그림일기', '🎨 색칠하기'].map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl bg-white/15 px-4 py-2 text-sm font-medium"
-              >
-                {item}
-              </div>
-            ))}
+          <div className="space-y-6">
+            <h2 className="text-4xl font-bold leading-tight">
+              아이들이 좋아하는 것으로
+              <br />
+              배우는 즐거운 교실
+            </h2>
+            <p className="max-w-md text-lg leading-relaxed text-white/80">
+              스토리텔링 학습지와 그림일기, 학교 후불 스토어까지
+              <br />
+              맞춤 학습과 수업 준비를 한곳에서 사용해 보세요.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {['스토리텔링', '그림일기', '스토어·후불'].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl bg-white/15 px-4 py-2 text-sm font-medium"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
         <p className="text-sm text-white/60">모든 아이가 자신이 좋아하는 것으로 배울 수 있도록</p>
       </div>
@@ -174,8 +174,12 @@ export function LoginPage() {
             className="mt-6 h-11 w-full rounded-2xl"
             onClick={enterDemo}
           >
-            🌱 데모 모드로 체험하기
+            데모 모드로 체험하기
           </Button>
+          <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
+            샘플 학생·스토어 주문·관리자 주문 관리까지 브라우저에만 저장되며, AI 생성 자료는 DB에
+            저장되지 않습니다.
+          </p>
         </div>
       </div>
     </div>

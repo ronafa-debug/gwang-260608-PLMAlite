@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "smoke": "node scripts/smoke.mjs",
     "preview": "vite preview",
     "supabase:login": "supabase login",
     "supabase:setup": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-supabase.ps1",

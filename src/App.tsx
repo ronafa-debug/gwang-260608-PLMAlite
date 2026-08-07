@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
+import { AdminOrdersPage } from '@/components/admin/AdminOrdersPage'
 import { Dashboard } from '@/components/dashboard/Dashboard'
 import { MaterialLibrary } from '@/components/library/MaterialLibrary'
 import { MaterialGenerator } from '@/components/materials/MaterialGenerator'
 import { ReportsPage } from '@/components/reports/ReportsPage'
 import { SettingsPage } from '@/components/settings/SettingsPage'
+import { OrdersPage } from '@/components/store/OrdersPage'
+import { StorePage } from '@/components/store/StorePage'
 import { StudentManagement } from '@/components/students/StudentManagement'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useAuth } from '@/contexts/AuthContext'
@@ -27,7 +30,7 @@ function SetupNotice() {
 }
 
 function AppContent() {
-  const { user, isDemo, signOut } = useAuth()
+  const { user, isDemo, isAdmin, signOut } = useAuth()
   const { students, loading, error, addStudent, editStudent, removeStudent } = useStudents()
   const { items, loading: libraryLoading } = useLibraryItems()
 
@@ -91,6 +94,16 @@ function AppContent() {
             <MaterialLibrary />
           </div>
         )
+      case 'store':
+        return <StorePage onNavigate={setPage} />
+      case 'orders':
+        return <OrdersPage onNavigate={setPage} />
+      case 'admin_orders':
+        return isAdmin ? (
+          <AdminOrdersPage />
+        ) : (
+          <p className="text-sm text-muted-foreground">관리자만 접근할 수 있습니다.</p>
+        )
       case 'reports':
         return (
           <ReportsPage
@@ -112,6 +125,7 @@ function AppContent() {
       onNavigate={setPage}
       teacherName={user?.name ?? '선생님'}
       isDemo={isDemo}
+      isAdmin={isAdmin}
       onSignOut={() => void signOut()}
     >
       {!isSupabaseConfigured && !isDemo ? <SetupNotice /> : null}

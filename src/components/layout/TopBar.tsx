@@ -13,6 +13,7 @@ export function TopBar({ teacherName, isDemo, onSignOut }: TopBarProps) {
     <header className="flex items-center justify-end gap-3 border-b border-border/60 bg-background/80 px-8 py-4 backdrop-blur-sm">
       {isDemo ? (
         <span
+          title="브라우저에만 저장됩니다. 스토어·관리자 주문 관리 포함"
           className={cn(
             'rounded-full px-4 py-1.5 text-sm font-medium',
             'bg-accent-blue text-accent-blue-foreground',

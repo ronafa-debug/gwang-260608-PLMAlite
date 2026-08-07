@@ -124,4 +124,22 @@
     box-shadow: none !important;
     border: none !important;
   }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #store-invoice,
+  #store-invoice * {
+    visibility: visible;
+  }
+
+  #store-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+  }
 }

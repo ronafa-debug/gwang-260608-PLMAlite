@@ -5,6 +5,7 @@ import {
   Car,
   ChevronRight,
   FileText,
+  ShoppingBag,
   Sparkles,
   TrendingUp,
   Users,
@@ -12,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingState } from '@/components/shared/LoadingState'
+import { DemoNotice } from '@/components/shared/DemoNotice'
+import { useAuth } from '@/contexts/AuthContext'
 import { formatRelativeDate } from '@/lib/utils'
 import type { LibraryItem, Student, StorytellingMaterial } from '@/types'
 import type { AppPage, GenerateTab } from '@/types/navigation'
@@ -64,6 +67,7 @@ export function Dashboard({
   onNavigate,
   onGenerate,
 }: DashboardProps) {
+  const { isDemo, isAdmin } = useAuth()
   const recentItems = items.slice(0, 5)
   const stats = [
     {
@@ -113,6 +117,45 @@ export function Dashboard({
           <Sparkles className="h-4 w-4" />
           새 자료 생성
         </Button>
+      </div>
+
+      {isDemo ? (
+        <DemoNotice>
+          데모 모드입니다. 학생·자료·스토어 주문이 브라우저에만 보관됩니다.
+          {isAdmin
+            ? ' 사이드바에서 스토어 · 내 주문 · 주문 관리(관리자)를 순서대로 체험해 보세요.'
+            : ' 스토어와 내 주문을 열어 후불 주문 흐름을 확인할 수 있습니다.'}
+        </DemoNotice>
+      ) : null}
+
+      <div className="flex flex-wrap gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-2xl"
+          onClick={() => onNavigate('store')}
+        >
+          <ShoppingBag className="h-4 w-4" />
+          스토어
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-2xl"
+          onClick={() => onNavigate('orders')}
+        >
+          내 주문
+        </Button>
+        {isAdmin ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-2xl"
+            onClick={() => onNavigate('admin_orders')}
+          >
+            주문 관리
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

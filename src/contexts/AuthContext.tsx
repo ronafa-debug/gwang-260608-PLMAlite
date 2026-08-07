@@ -16,6 +16,7 @@ interface AuthContextValue {
   user: AuthUser | null
   isLoading: boolean
   isDemo: boolean
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
@@ -25,11 +26,29 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function mapSessionUser(metaName?: string, email?: string | null, id?: string): AuthUser {
+async function resolveAuthUser(
+  id: string,
+  metaName?: string,
+  email?: string | null,
+): Promise<AuthUser> {
+  if (!supabase) {
+    return {
+      id,
+      name: metaName?.trim() || '선생님',
+      email: email ?? '',
+      role: 'teacher',
+    }
+  }
+
+  const { data } = await supabase.from('profiles').select('name, role').eq('id', id).maybeSingle()
+  const role: AuthUser['role'] =
+    data?.role === 'admin' || data?.role === 'teacher' ? data.role : 'teacher'
+
   return {
-    id: id ?? '',
-    name: metaName?.trim() || '선생님',
+    id,
+    name: (typeof data?.name === 'string' && data.name.trim()) || metaName?.trim() || '선생님',
     email: email ?? '',
+    role,
   }
 }
 
@@ -64,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedDemo = getStorageItem('isDemo', false)
       if (storedDemo && getStorageItem<AuthUser | null>('user', null)?.id === DEMO_USER.id) {
         if (mounted) {
-          setUser(DEMO_USER)
+          setUser({ ...DEMO_USER, role: 'admin' })
           setIsDemo(true)
           setIsLoading(false)
         }
@@ -74,20 +93,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const {
         data: { session },
       } = await client.auth.getSession()
-
       if (!mounted) return
 
       if (session?.user) {
-        const next = mapSessionUser(
+        const next = await resolveAuthUser(
+          session.user.id,
           session.user.user_metadata?.name as string | undefined,
           session.user.email,
-          session.user.id,
         )
-        persistUser(next, false)
-      } else {
+        if (mounted) persistUser(next, false)
+      } else if (mounted) {
         persistUser(null, false)
       }
-      setIsLoading(false)
+      if (mounted) setIsLoading(false)
     }
 
     void init()
@@ -96,17 +114,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = client.auth.onAuthStateChange((_event, session) => {
       if (getStorageItem('isDemo', false)) return
-
-      if (session?.user) {
-        const next = mapSessionUser(
-          session.user.user_metadata?.name as string | undefined,
-          session.user.email,
-          session.user.id,
-        )
-        persistUser(next, false)
-      } else {
-        persistUser(null, false)
-      }
+      void (async () => {
+        if (session?.user) {
+          const next = await resolveAuthUser(
+            session.user.id,
+            session.user.user_metadata?.name as string | undefined,
+            session.user.email,
+          )
+          persistUser(next, false)
+        } else {
+          persistUser(null, false)
+        }
+      })()
     })
 
     return () => {
@@ -149,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (supabase) {
       await supabase.auth.signOut()
     }
-    persistUser(DEMO_USER, true)
+    persistUser({ ...DEMO_USER, role: 'admin' }, true)
     setIsLoading(false)
   }, [persistUser])
 
@@ -163,18 +182,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   )
 
+  const isAdmin = user?.role === 'admin'
+
   const value = useMemo(
     () => ({
       user,
       isLoading,
       isDemo,
+      isAdmin,
       signIn,
       signUp,
       signOut,
       enterDemo,
       updateDisplayName,
     }),
-    [user, isLoading, isDemo, signIn, signUp, signOut, enterDemo, updateDisplayName],
+    [user, isLoading, isDemo, isAdmin, signIn, signUp, signOut, enterDemo, updateDisplayName],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
