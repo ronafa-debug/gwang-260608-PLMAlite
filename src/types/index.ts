@@ -6,10 +6,14 @@ export interface Student {
   favorite_character: string
   favorite_activity: string
   notes: string | null
+  /** Storage path, or data URL in demo mode */
+  photo_path?: string | null
+  /** UI-only: signed or data URL for display */
+  photoUrl?: string | null
   created_at: string
 }
 
-export type StudentInput = Omit<Student, 'id' | 'created_at'>
+export type StudentInput = Omit<Student, 'id' | 'created_at' | 'photoUrl'>
 
 export type Subject = '국어' | '수학' | '사회' | '과학' | '기타'
 export type StoryLength = 'A4 절반' | 'A4 한 장'

@@ -6,7 +6,7 @@ export const DEMO_USER = {
   id: DEMO_USER_ID,
   name: '김선생님',
   email: 'demo@plma.app',
-  role: 'admin' as const,
+  role: 'teacher' as const,
 }
 
 export const mockStudents: Student[] = [
@@ -18,6 +18,8 @@ export const mockStudents: Student[] = [
     favorite_character: '토마스',
     favorite_activity: '자동차 놀이',
     notes: '자동차를 좋아합니다.',
+    photo_path: null,
+    photoUrl: null,
     created_at: new Date().toISOString(),
   },
   {
@@ -28,6 +30,8 @@ export const mockStudents: Student[] = [
     favorite_character: '엘사',
     favorite_activity: '그림 그리기',
     notes: null,
+    photo_path: null,
+    photoUrl: null,
     created_at: new Date().toISOString(),
   },
   {
@@ -38,6 +42,8 @@ export const mockStudents: Student[] = [
     favorite_character: '멜로디',
     favorite_activity: '브롤스타즈',
     notes: '게임을 좋아합니다.',
+    photo_path: null,
+    photoUrl: null,
     created_at: new Date().toISOString(),
   },
 ]

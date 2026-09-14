@@ -21,6 +21,7 @@ import {
   fetchDiaryMaterials,
   fetchStorytellingMaterials,
 } from '@/lib/api'
+import { logGenerationEvent } from '@/lib/adminContentApi'
 import { getStorageItem, setStorageItem } from '@/lib/storage'
 import { downloadMaterialPdf, waitForImages } from '@/lib/materialPdf'
 import { formatDateTime } from '@/lib/utils'
@@ -133,6 +134,11 @@ export function MaterialLibrary() {
         const next = items.filter((current) => current.data.id !== item.data.id)
         setStorageItem('demo_library', next)
         setItems(next)
+        await logGenerationEvent({
+          materialType: item.type,
+          eventType: 'deleted',
+          meta: { id: item.data.id },
+        })
       } else if (item.type === 'storytelling') {
         await deleteStorytellingMaterial(item.data.id)
         setItems((prev) => prev.filter((current) => current.data.id !== item.data.id))

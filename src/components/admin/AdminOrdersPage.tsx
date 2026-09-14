@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useAuth } from '@/contexts/AuthContext'
-import { DemoNotice } from '@/components/shared/DemoNotice'
 import { InvoiceView } from '@/components/store/InvoiceView'
 import { OrderStatusTimeline } from '@/components/store/OrderStatusTimeline'
 import {
@@ -131,18 +130,6 @@ export function AdminOrdersPage() {
           새로고침
         </Button>
       </div>
-
-      {isDemo ? (
-        <DemoNotice>
-          <p className="font-medium">데모 관리자</p>
-          <p className="mt-1 opacity-90">
-            추천 흐름: 교사가 주문(확인 대기) → 여기서{' '}
-            <strong className="font-semibold">주문확인(접수)</strong>
-            하면 교사 화면은 제작중/출고 준비중으로 바뀌고 취소가 잠깁니다 → 출고 → 청구서 → 입금
-            확인.
-          </p>
-        </DemoNotice>
-      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {filters.map(({ id, label }) => (

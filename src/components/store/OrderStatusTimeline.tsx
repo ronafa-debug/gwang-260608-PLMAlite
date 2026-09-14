@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils'
-import { getCustomerStatusLabel, type OrderStatus, type ProductType } from '@/types/store'
+import {
+  CUSTOMER_STATUS_LABEL,
+  type OrderStatus,
+  type ProductType,
+} from '@/types/store'
 
 const FLOW: OrderStatus[] = [
   'submitted',
@@ -11,9 +15,9 @@ const FLOW: OrderStatus[] = [
 
 interface OrderStatusTimelineProps {
   status: OrderStatus
-  /** When set, in_production label becomes 제작중 vs 출고 준비중 for customers. */
+  /** Kept for call-site compatibility; customer labels no longer depend on item type. */
   items?: Array<{ product_type: ProductType }> | null
-  /** Admin board uses generic labels (제작·출고준비). */
+  /** Admin board uses operational labels (확인 대기 · 출고 · 청구 …). */
   variant?: 'customer' | 'admin'
 }
 
@@ -28,7 +32,6 @@ const ADMIN_STEP_LABEL: Record<OrderStatus, string> = {
 
 export function OrderStatusTimeline({
   status,
-  items,
   variant = 'customer',
 }: OrderStatusTimelineProps) {
   if (status === 'cancelled') {
@@ -41,22 +44,21 @@ export function OrderStatusTimeline({
 
   const currentIndex = FLOW.indexOf(status)
   const labelFor = (step: OrderStatus) =>
-    variant === 'admin'
-      ? ADMIN_STEP_LABEL[step]
-      : getCustomerStatusLabel(step, items)
+    variant === 'admin' ? ADMIN_STEP_LABEL[step] : CUSTOMER_STATUS_LABEL[step]
 
   return (
     <ol className="flex flex-wrap gap-2">
       {FLOW.map((step, index) => {
-        const done = index <= currentIndex
+        const isPast = index < currentIndex
+        const isCurrent = index === currentIndex
         return (
           <li
             key={step}
             className={cn(
               'rounded-full px-3 py-1 text-xs font-medium',
-              done
-                ? 'bg-primary/15 text-primary'
-                : 'bg-muted text-muted-foreground',
+              isCurrent && 'bg-primary text-primary-foreground',
+              isPast && 'bg-primary/20 text-primary',
+              !isPast && !isCurrent && 'bg-muted text-muted-foreground',
             )}
           >
             {labelFor(step)}

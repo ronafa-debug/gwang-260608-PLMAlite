@@ -21,6 +21,8 @@ interface AuthContextValue {
   signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
   enterDemo: () => void
+  /** Leave demo and open login page in sign-up mode */
+  exitDemoForSignUp: () => Promise<void>
   updateDisplayName: (name: string) => void
 }
 
@@ -83,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedDemo = getStorageItem('isDemo', false)
       if (storedDemo && getStorageItem<AuthUser | null>('user', null)?.id === DEMO_USER.id) {
         if (mounted) {
-          setUser({ ...DEMO_USER, role: 'admin' })
+          setUser({ ...DEMO_USER })
           setIsDemo(true)
           setIsLoading(false)
         }
@@ -168,9 +170,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (supabase) {
       await supabase.auth.signOut()
     }
-    persistUser({ ...DEMO_USER, role: 'admin' }, true)
+    persistUser({ ...DEMO_USER }, true)
     setIsLoading(false)
   }, [persistUser])
+
+  const exitDemoForSignUp = useCallback(async () => {
+    setStorageItem('preferSignUp', true)
+    if (supabase) {
+      await supabase.auth.signOut()
+    }
+    removeStorageItem('user')
+    removeStorageItem('isDemo')
+    setUser(null)
+    setIsDemo(false)
+  }, [])
 
   const updateDisplayName = useCallback(
     (name: string) => {
@@ -182,7 +195,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   )
 
-  const isAdmin = user?.role === 'admin'
+  /** Real admin accounts only — never grant admin in demo preview */
+  const isAdmin = Boolean(user?.role === 'admin' && !isDemo)
 
   const value = useMemo(
     () => ({
@@ -194,9 +208,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signOut,
       enterDemo,
+      exitDemoForSignUp,
       updateDisplayName,
     }),
-    [user, isLoading, isDemo, isAdmin, signIn, signUp, signOut, enterDemo, updateDisplayName],
+    [
+      user,
+      isLoading,
+      isDemo,
+      isAdmin,
+      signIn,
+      signUp,
+      signOut,
+      enterDemo,
+      exitDemoForSignUp,
+      updateDisplayName,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

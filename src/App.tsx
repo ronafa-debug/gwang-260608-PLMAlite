@@ -1,21 +1,22 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
+import { AdminContentPage } from '@/components/admin/AdminContentPage'
 import { AdminOrdersPage } from '@/components/admin/AdminOrdersPage'
 import { Dashboard } from '@/components/dashboard/Dashboard'
-import { MaterialLibrary } from '@/components/library/MaterialLibrary'
-import { MaterialGenerator } from '@/components/materials/MaterialGenerator'
-import { ReportsPage } from '@/components/reports/ReportsPage'
+import { MaterialsPage } from '@/components/materials/MaterialsPage'
+import { ClassroomToolsPage } from '@/components/tools/ClassroomToolsPage'
 import { SettingsPage } from '@/components/settings/SettingsPage'
 import { OrdersPage } from '@/components/store/OrdersPage'
+import { CartPage } from '@/components/store/CartPage'
+import { CheckoutPage } from '@/components/store/CheckoutPage'
 import { StorePage } from '@/components/store/StorePage'
-import { StudentManagement } from '@/components/students/StudentManagement'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLibraryItems } from '@/hooks/useLibraryItems'
 import { useStudents } from '@/hooks/useStudents'
 import { LoginPage } from '@/pages/LoginPage'
 import { isSupabaseConfigured } from '@/lib/supabase'
-import type { AppPage, GenerateTab } from '@/types/navigation'
+import type { AppPage, GenerateTab, MaterialsSection, SettingsTab } from '@/types/navigation'
 
 function SetupNotice() {
   return (
@@ -36,10 +37,30 @@ function AppContent() {
 
   const [page, setPage] = useState<AppPage>('dashboard')
   const [generateTab, setGenerateTab] = useState<GenerateTab>('storytelling')
+  const [generateEntry, setGenerateEntry] = useState<'catalog' | 'workspace'>('catalog')
+  const [materialsSection, setMaterialsSection] = useState<MaterialsSection>('create')
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('teacher')
 
-  const openGenerate = (tab: GenerateTab) => {
-    setGenerateTab(tab)
-    setPage('generate')
+  const goToPage = (next: AppPage) => {
+    if (next === 'library') {
+      setMaterialsSection('library')
+      setGenerateEntry('catalog')
+      setPage('generate')
+      return
+    }
+    if (next === 'generate') {
+      setMaterialsSection('create')
+      setGenerateEntry('catalog')
+    }
+    if (next === 'students') {
+      setSettingsTab('students')
+      setPage('settings')
+      return
+    }
+    if (next === 'settings') {
+      setSettingsTab('teacher')
+    }
+    setPage(next)
   }
 
   const renderPage = () => {
@@ -51,69 +72,59 @@ function AppContent() {
             items={items}
             loading={libraryLoading}
             teacherName={user?.name ?? '선생님'}
-            onNavigate={setPage}
-            onGenerate={openGenerate}
+            onNavigate={goToPage}
           />
         )
       case 'students':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">학생 관리</h1>
-              <p className="mt-1 text-muted-foreground">
-                학생 정보를 등록하고 맞춤 학습 자료 생성에 활용하세요.
-              </p>
-            </div>
-            <StudentManagement
-              students={students}
-              loading={loading}
-              error={error}
-              onAdd={addStudent}
-              onEdit={editStudent}
-              onDelete={removeStudent}
-            />
-          </div>
-        )
+        return null
       case 'generate':
-        return (
-          <MaterialGenerator
-            students={students}
-            activeTab={generateTab}
-            onTabChange={setGenerateTab}
-          />
-        )
       case 'library':
         return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">자료 라이브러리</h1>
-              <p className="mt-1 text-muted-foreground">
-                저장된 학습 자료를 검색하고 미리보기·PDF 저장·삭제할 수 있습니다.
-              </p>
-            </div>
-            <MaterialLibrary />
-          </div>
+          <MaterialsPage
+            section={materialsSection}
+            onSectionChange={setMaterialsSection}
+            students={students}
+            materialType={generateTab}
+            onMaterialTypeChange={setGenerateTab}
+            entryMode={generateEntry}
+            onEntryModeChange={setGenerateEntry}
+          />
         )
+      case 'tools':
+        return <ClassroomToolsPage />
       case 'store':
-        return <StorePage onNavigate={setPage} />
+        return <StorePage onNavigate={goToPage} />
+      case 'cart':
+        return <CartPage onNavigate={goToPage} />
+      case 'checkout':
+        return <CheckoutPage onNavigate={goToPage} />
       case 'orders':
-        return <OrdersPage onNavigate={setPage} />
+        return <OrdersPage onNavigate={goToPage} />
       case 'admin_orders':
         return isAdmin ? (
           <AdminOrdersPage />
         ) : (
           <p className="text-sm text-muted-foreground">관리자만 접근할 수 있습니다.</p>
         )
-      case 'reports':
-        return (
-          <ReportsPage
-            items={items}
-            studentCount={students.length}
-            loading={libraryLoading}
-          />
+      case 'admin_content':
+        return isAdmin ? (
+          <AdminContentPage />
+        ) : (
+          <p className="text-sm text-muted-foreground">관리자만 접근할 수 있습니다.</p>
         )
       case 'settings':
-        return <SettingsPage />
+        return (
+          <SettingsPage
+            activeTab={settingsTab}
+            onTabChange={setSettingsTab}
+            students={students}
+            studentsLoading={loading}
+            studentsError={error}
+            onAddStudent={addStudent}
+            onEditStudent={editStudent}
+            onDeleteStudent={removeStudent}
+          />
+        )
       default:
         return null
     }
@@ -122,7 +133,7 @@ function AppContent() {
   return (
     <AppShell
       activePage={page}
-      onNavigate={setPage}
+      onNavigate={goToPage}
       teacherName={user?.name ?? '선생님'}
       isDemo={isDemo}
       isAdmin={isAdmin}

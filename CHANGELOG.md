@@ -11,9 +11,9 @@ PLMA Lite 변경 이력을 **학습 플랫폼(기존)** 과 **스토어(신규)*
 카드 PG 없음. 주문 → 출고 → **청구서** → 행정실 **계좌이체(후불)**.
 
 ### 범위 한 줄
-- **교사:** 카탈로그 · 장바구니 · 주문(배송 시작) · 내 주문 · 청구서 · 학교/배송 설정  
+- **교사:** 카탈로그 · **장바구니 페이지** · **주문하기(배송)** · 내 주문 · 청구서 · 학교/배송 설정  
 - **관리자** (`profiles.role = 'admin'`): 주문확인(접수) · 출고 · 청구 · 입금 확인  
-- **데모:** 주문·배송 정보는 브라우저 localStorage (DB 영구 저장 없음)
+- **데모:** UI·스토어 미리보기(관리자 메뉴 없음). AI 자료 생성은 회원가입 유도. 주문은 localStorage
 
 ### 주문 상태 머신 (유지보수 핵심)
 
@@ -21,10 +21,10 @@ PLMA Lite 변경 이력을 **학습 플랫폼(기존)** 과 **스토어(신규)*
 
 | DB status | 고객 표시 | 관리자 액션 예 | 교사 취소 |
 |-----------|-----------|----------------|-----------|
-| `submitted` | 주문 완료 (확인 대기) | **주문확인(접수)** → `in_production` | ✅ 가능 |
-| `in_production` | 맞춤 굿즈 있으면 **제작중**, 소모품만이면 **출고 준비중** | 출고 처리 | ❌ 불가 |
-| `shipped` | 출고됨 | 청구서 발송 | ❌ |
-| `invoiced` | 청구서 발송 | 입금 확인 | ❌ |
+| `submitted` | 주문완료 | **주문확인(접수)** → `in_production` | ✅ 가능 |
+| `in_production` | 출고준비중 | 출고 처리 → `shipped` | ❌ 불가 |
+| `shipped` | 배송중 | 청구서 발송 → `invoiced` | ❌ |
+| `invoiced` | 배송완료 | 입금 확인 → `paid` | ❌ |
 | `paid` | 입금확인 | — | ❌ |
 | `cancelled` | 취소됨 | — | — |
 
@@ -36,8 +36,8 @@ PLMA Lite 변경 이력을 **학습 플랫폼(기존)** 과 **스토어(신규)*
     → 출고 → shipped → 청구 → invoiced → 입금 → paid
 ```
 
-- 신규 주문은 항상 `submitted` (맞춤 굿즈도 즉시 제작중으로 두지 않음).  
-- 관리자는 `submitted`에서 바로 출고하지 않음 (`in_production` 경유).
+- 신규 주문은 항상 `submitted` (맞춤 굿즈도 즉시 출고준비중으로 두지 않음).
+- 교사 타임라인: 현재 단계 진한 primary, 이전 단계 연한 primary, 이후 muted.
 
 ### 마이그레이션 (스토어만)
 
@@ -77,7 +77,7 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 1. 데모 로그인 → 스토어 담기 → 배송 시작  
 2. 내 주문: **주문 완료**, 취소 버튼 있음  
 3. 주문 관리: **주문확인(접수)**  
-4. 내 주문: **제작중** 또는 **출고 준비중**, 취소 없음  
+4. 내 주문: **출고준비중**, 취소 없음  
 5. 출고 → 청구서 → 입금 확인  
 
 자동화: `npm run smoke` (필수 파일 + `build`)
@@ -94,6 +94,7 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 
 ### 학생 · AI 학습 자료
 - 학생 CRUD  
+- **학생 사진 (선택)** — `photo_path`, Storage 버킷 `student-photos` (`008`)  
 - 스토리텔링 / 그림일기 생성 (`/api/generate-*`, OpenAI)  
 - 라이브러리 저장 · 미리보기 · 삭제  
 - PDF (`html2canvas` / `jsPDF`, oklch 캡처 보정)  
@@ -109,6 +110,13 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 | `001_initial_schema.sql` | students, materials, storage |
 | `002_diary_sticker_images.sql` | (선택) |
 | `003_auth_user_isolation.sql` | Auth · RLS · user_id |
+| `008_student_photos.sql` | students.photo_path · student-photos 버킷 |
+| `009_admin_content_quality.sql` | 관리자 전체 자료 조회 · generation_events |
+
+### 관리자 콘텐츠·품질 (2026-09)
+- 메뉴 **콘텐츠 · 품질** (`admin_content`) — 관리자만  
+- 저장 자료·과목 분포·이미지 비율·생성 성공/실패·저장률·평균 생성 시간  
+- 클라이언트 `generation_events` 로그 (생성/저장/삭제)  
 
 ### 알려진 개선 (기존)
 - 그림일기 저장 시 미존재 `sticker_images` 컬럼 제거  
@@ -117,8 +125,24 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 
 ---
 
+## [UI · 도구] 2026-09 — 내비 정리 · 수업/업무 도구
+
+### 내비 · 설정
+- 사이드바: 대시보드 · **도구** · **개별 학습 자료** · 스토어 · 설정
+- 모바일 하단 탭: 홈 · 도구 · 학습 · 스토어 · 더보기
+- 학생 관리 → 설정 탭, 라이브러리 → 학습 자료 **내 자료** 탭, 리포트 제거
+- 스토어: 장바구니·주문하기 페이지, 내 주문은 스토어 헤더
+
+### 도구
+- **수업 도구** / **업무 도구** 탭 (`ClassroomToolsPage`)
+- 카탈로그: `classroomTools.ts`, `workTools.ts`
+- 업무 핵심 5종(메모·할 일·스케줄·리마인더·학생 기록) localStorage
+- 아날로그 시계 분침 드래그 시 시 넘김 보정
+
+---
+
 ## 공통 (양쪽이 공유)
 
 - React 19 · Vite · Tailwind · Supabase · Vercel  
-- 로그인 후 AppShell 네비 (스토어 메뉴는 이후에 추가)  
-- 설정의 **학교·배송** 필드는 스토어 주문 기본값용 (스토어와 함께 확장됨)
+- 로그인 후 AppShell · 모바일 하단 내비  
+- 설정의 **학교·배송** 필드는 스토어 주문 기본값용

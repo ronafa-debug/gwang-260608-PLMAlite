@@ -103,17 +103,22 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: '취소됨',
 }
 
-/** Customer-facing label (in_production splits custom vs stock). */
+/** Teacher-facing timeline / status copy (admin keeps ORDER_STATUS_LABEL). */
+export const CUSTOMER_STATUS_LABEL: Record<OrderStatus, string> = {
+  submitted: '주문완료',
+  in_production: '출고준비중',
+  shipped: '배송중',
+  invoiced: '배송완료',
+  paid: '입금확인',
+  cancelled: '취소됨',
+}
+
+/** Customer-facing label. */
 export function getCustomerStatusLabel(
   status: OrderStatus,
-  items?: Array<{ product_type: ProductType }> | null,
+  _items?: Array<{ product_type: ProductType }> | null,
 ): string {
-  if (status === 'in_production') {
-    const hasCustom = items?.some((item) => item.product_type === 'custom') ?? false
-    return hasCustom ? '제작중' : '출고 준비중'
-  }
-  if (status === 'submitted') return '주문 완료'
-  return ORDER_STATUS_LABEL[status]
+  return CUSTOMER_STATUS_LABEL[status]
 }
 
 export function orderHasCustomItems(order: Order): boolean {

@@ -1,18 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Leaf, Lock, Mail, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/AuthContext'
+import { getStorageItem, removeStorageItem } from '@/lib/storage'
 import { supabase } from '@/lib/supabase'
 
 export function LoginPage() {
   const { signIn, signUp, enterDemo } = useAuth()
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(() => getStorageItem('preferSignUp', false))
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (getStorageItem('preferSignUp', false)) {
+      removeStorageItem('preferSignUp')
+    }
+  }, [])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -79,7 +86,7 @@ export function LoginPage() {
         <p className="text-sm text-white/60">모든 아이가 자신이 좋아하는 것으로 배울 수 있도록</p>
       </div>
 
-      <div className="flex flex-1 items-center justify-center bg-background p-8">
+      <div className="flex flex-1 items-center justify-center bg-background p-4 sm:p-8">
         <div className="w-full max-w-md">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
@@ -177,8 +184,8 @@ export function LoginPage() {
             데모 모드로 체험하기
           </Button>
           <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
-            샘플 학생·스토어 주문·관리자 주문 관리까지 브라우저에만 저장되며, AI 생성 자료는 DB에
-            저장되지 않습니다.
+            가입 전 UI 미리보기입니다. 샘플 학생·스토어 둘러보기가 가능하며, 학습 자료 AI 생성은
+            회원가입 후 이용할 수 있습니다. 데이터는 이 브라우저에만 잠시 저장됩니다.
           </p>
         </div>
       </div>

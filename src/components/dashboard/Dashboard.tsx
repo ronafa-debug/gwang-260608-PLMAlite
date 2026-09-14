@@ -9,6 +9,7 @@ import {
   Sparkles,
   TrendingUp,
   Users,
+  Wrench,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +18,7 @@ import { DemoNotice } from '@/components/shared/DemoNotice'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatRelativeDate } from '@/lib/utils'
 import type { LibraryItem, Student, StorytellingMaterial } from '@/types'
-import type { AppPage, GenerateTab } from '@/types/navigation'
+import type { AppPage } from '@/types/navigation'
 
 interface DashboardProps {
   students: Student[]
@@ -25,7 +26,6 @@ interface DashboardProps {
   loading: boolean
   teacherName: string
   onNavigate: (page: AppPage) => void
-  onGenerate: (tab: GenerateTab) => void
 }
 
 const demoSchedule = [
@@ -65,7 +65,6 @@ export function Dashboard({
   loading,
   teacherName,
   onNavigate,
-  onGenerate,
 }: DashboardProps) {
   const { isDemo, isAdmin } = useAuth()
   const recentItems = items.slice(0, 5)
@@ -112,19 +111,17 @@ export function Dashboard({
         <Button
           type="button"
           className="h-11 rounded-2xl px-5 shadow-sm"
-          onClick={() => onGenerate('storytelling')}
+          onClick={() => onNavigate('generate')}
         >
           <Sparkles className="h-4 w-4" />
-          새 자료 생성
+          새 자료
         </Button>
       </div>
 
       {isDemo ? (
         <DemoNotice>
-          데모 모드입니다. 학생·자료·스토어 주문이 브라우저에만 보관됩니다.
-          {isAdmin
-            ? ' 사이드바에서 스토어 · 내 주문 · 주문 관리(관리자)를 순서대로 체험해 보세요.'
-            : ' 스토어와 내 주문을 열어 후불 주문 흐름을 확인할 수 있습니다.'}
+          데모 모드입니다. 화면·스토어를 둘러볼 수 있고, 학습 자료 AI 생성은 회원가입 후
+          이용할 수 있습니다.
         </DemoNotice>
       ) : null}
 
@@ -133,18 +130,19 @@ export function Dashboard({
           type="button"
           variant="outline"
           className="rounded-2xl"
-          onClick={() => onNavigate('store')}
+          onClick={() => onNavigate('tools')}
         >
-          <ShoppingBag className="h-4 w-4" />
-          스토어
+          <Wrench className="h-4 w-4" />
+          도구
         </Button>
         <Button
           type="button"
           variant="outline"
           className="rounded-2xl"
-          onClick={() => onNavigate('orders')}
+          onClick={() => onNavigate('store')}
         >
-          내 주문
+          <ShoppingBag className="h-4 w-4" />
+          스토어
         </Button>
         {isAdmin ? (
           <Button

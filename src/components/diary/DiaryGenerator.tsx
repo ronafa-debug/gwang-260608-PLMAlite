@@ -22,7 +22,7 @@ interface DiaryGeneratorProps {
 }
 
 export function DiaryGenerator({ students }: DiaryGeneratorProps) {
-  const { isDemo } = useAuth()
+  const { isDemo, exitDemoForSignUp } = useAuth()
   const [studentId, setStudentId] = useState('')
   const [rawInput, setRawInput] = useState('')
   const [result, setResult] = useState<DiaryGenerateResponse | null>(null)
@@ -39,6 +39,10 @@ export function DiaryGenerator({ students }: DiaryGeneratorProps) {
   )
 
   const handleGenerate = async () => {
+    if (isDemo) {
+      await exitDemoForSignUp()
+      return
+    }
     if (!selectedStudent) {
       setError('학생을 선택해 주세요.')
       return
@@ -118,7 +122,7 @@ export function DiaryGenerator({ students }: DiaryGeneratorProps) {
     return (
       <EmptyState
         title="등록된 학생이 없습니다"
-        description="학생 관리 탭에서 학생을 먼저 등록해 주세요."
+        description="설정 → 학생 정보 관리에서 학생을 먼저 등록해 주세요."
       />
     )
   }

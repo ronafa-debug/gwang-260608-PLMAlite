@@ -4,29 +4,35 @@ export interface Database {
       students: {
         Row: {
           id: string
+          user_id?: string | null
           name: string
           grade: string
           favorite_character: string
           favorite_activity: string
           notes: string | null
+          photo_path: string | null
           created_at: string
         }
         Insert: {
           id?: string
+          user_id?: string | null
           name: string
           grade: string
           favorite_character: string
           favorite_activity: string
           notes?: string | null
+          photo_path?: string | null
           created_at?: string
         }
         Update: {
           id?: string
+          user_id?: string | null
           name?: string
           grade?: string
           favorite_character?: string
           favorite_activity?: string
           notes?: string | null
+          photo_path?: string | null
           created_at?: string
         }
       }

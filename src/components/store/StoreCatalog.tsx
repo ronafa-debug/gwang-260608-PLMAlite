@@ -1,4 +1,4 @@
-import { Package, ShoppingBag, Sparkles } from 'lucide-react'
+import { ClipboardList, Package, ShoppingBag, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatWon } from '@/lib/storeApi'
@@ -14,6 +14,7 @@ interface StoreCatalogProps {
   filter: CategoryFilter
   onFilterChange: (filter: CategoryFilter) => void
   cartCount: number
+  onOpenOrders: () => void
   onOpenCart: () => void
   onAddToCart: (product: Product) => void
 }
@@ -39,6 +40,7 @@ export function StoreCatalog({
   filter,
   onFilterChange,
   cartCount,
+  onOpenOrders,
   onOpenCart,
   onAddToCart,
 }: StoreCatalogProps) {
@@ -54,10 +56,16 @@ export function StoreCatalog({
             수업 준비물 · 맞춤 굿즈 (행정실 후불 정산 · 카드 결제 없음)
           </p>
         </div>
-        <Button type="button" variant="outline" className="rounded-2xl" onClick={onOpenCart}>
-          <ShoppingBag className="h-4 w-4" />
-          장바구니 ({cartCount})
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" className="rounded-2xl" onClick={onOpenOrders}>
+            <ClipboardList className="h-4 w-4" />
+            내 주문
+          </Button>
+          <Button type="button" variant="outline" className="rounded-2xl" onClick={onOpenCart}>
+            <ShoppingBag className="h-4 w-4" />
+            장바구니 ({cartCount})
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

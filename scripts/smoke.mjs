@@ -26,6 +26,8 @@ const requiredPaths = [
   'supabase/migrations/005_store_print_storage.sql',
   'supabase/migrations/006_store_admin_invoice.sql',
   'supabase/migrations/007_order_cancel_after_admin_confirm.sql',
+  'supabase/migrations/008_student_photos.sql',
+  'supabase/migrations/009_admin_content_quality.sql',
 ]
 
 let failed = false

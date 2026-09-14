@@ -34,7 +34,7 @@ interface StorytellingGeneratorProps {
 }
 
 export function StorytellingGenerator({ students }: StorytellingGeneratorProps) {
-  const { isDemo } = useAuth()
+  const { isDemo, exitDemoForSignUp } = useAuth()
   const [studentId, setStudentId] = useState('')
   const [subject, setSubject] = useState<Subject>('국어')
   const [learningGoal, setLearningGoal] = useState('')
@@ -54,6 +54,10 @@ export function StorytellingGenerator({ students }: StorytellingGeneratorProps) 
   )
 
   const handleGenerate = async () => {
+    if (isDemo) {
+      await exitDemoForSignUp()
+      return
+    }
     if (!selectedStudent) {
       setError('학생을 선택해 주세요.')
       return
@@ -136,7 +140,7 @@ export function StorytellingGenerator({ students }: StorytellingGeneratorProps) 
     return (
       <EmptyState
         title="등록된 학생이 없습니다"
-        description="학생 관리 탭에서 학생을 먼저 등록해 주세요."
+        description="설정 → 학생 정보 관리에서 학생을 먼저 등록해 주세요."
       />
     )
   }

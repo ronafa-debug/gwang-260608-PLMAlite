@@ -18,11 +18,7 @@ import {
   formatWon,
 } from '@/lib/storeApi'
 import { formatDateTime } from '@/lib/utils'
-import {
-  getCustomerStatusLabel,
-  type Order,
-  type StoreBillingSettings,
-} from '@/types/store'
+import type { Order, StoreBillingSettings } from '@/types/store'
 import type { AppPage } from '@/types/navigation'
 
 interface OrdersPageProps {
@@ -96,8 +92,8 @@ export function OrdersPage({ onNavigate }: OrdersPageProps) {
 
       {isDemo ? (
         <DemoNotice>
-          주문 직후 ·확인 대기· 상태에서는 취소할 수 있습니다. 관리자가 주문확인(접수)하면
-          ·제작중· 또는 ·출고 준비중·으로 바뀌며 취소가 잠깁니다.
+          주문 직후 ·주문완료· 상태에서는 취소할 수 있습니다. 관리자가 주문확인(접수)하면
+          ·출고준비중·으로 바뀌며 취소가 잠깁니다.
         </DemoNotice>
       ) : null}
 
@@ -134,9 +130,7 @@ export function OrdersPage({ onNavigate }: OrdersPageProps) {
                       {order.school_name || '학교 미기재'} · {formatWon(order.subtotal)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDateTime(order.submitted_at)} · 주문{' '}
-                      {order.id.slice(0, 8)}…
-                      {order.invoice_number ? ` · ${order.invoice_number}` : ''}
+                      {formatDateTime(order.submitted_at)}
                     </p>
                     <OrderStatusTimeline
                       status={order.status}
@@ -145,9 +139,6 @@ export function OrdersPage({ onNavigate }: OrdersPageProps) {
                     />
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                      {getCustomerStatusLabel(order.status, order.order_items)}
-                    </span>
                     <Button
                       type="button"
                       variant="outline"

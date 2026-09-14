@@ -1,29 +1,35 @@
 import {
-  BarChart3,
   BookOpen,
-  ClipboardList,
-  FolderOpen,
   LayoutDashboard,
   Leaf,
+  LineChart,
   Settings,
   ShoppingBag,
   Sparkles,
-  Users,
   Shield,
+  Wrench,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { AppPage } from '@/types/navigation'
+import { isMaterialsSection, isStoreSection, type AppPage } from '@/types/navigation'
 
 const navItems: Array<{ id: AppPage; label: string; icon: typeof LayoutDashboard }> = [
   { id: 'dashboard', label: '대시보드', icon: LayoutDashboard },
-  { id: 'students', label: '학생 관리', icon: Users },
-  { id: 'generate', label: '학습 자료 생성', icon: Sparkles },
-  { id: 'library', label: '자료 라이브러리', icon: FolderOpen },
+  { id: 'tools', label: '도구', icon: Wrench },
+  { id: 'generate', label: '개별 학습 자료', icon: Sparkles },
   { id: 'store', label: '스토어', icon: ShoppingBag },
-  { id: 'orders', label: '내 주문', icon: ClipboardList },
-  { id: 'reports', label: '리포트', icon: BarChart3 },
   { id: 'settings', label: '설정', icon: Settings },
 ]
+
+const adminItems: Array<{ id: AppPage; label: string; icon: typeof Shield }> = [
+  { id: 'admin_orders', label: '주문 관리', icon: Shield },
+  { id: 'admin_content', label: '콘텐츠 · 품질', icon: LineChart },
+]
+
+function isNavActive(itemId: AppPage, activePage: AppPage) {
+  if (itemId === 'store') return isStoreSection(activePage)
+  if (itemId === 'generate') return isMaterialsSection(activePage)
+  return activePage === itemId
+}
 
 interface SidebarProps {
   activePage: AppPage
@@ -32,12 +38,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, onNavigate, isAdmin = false }: SidebarProps) {
+  // Insert admin items after 스토어
+  const storeIndex = navItems.findIndex((item) => item.id === 'store')
+  const insertAt = storeIndex >= 0 ? storeIndex + 1 : navItems.length
   const items = isAdmin
-    ? [
-        ...navItems.slice(0, 6),
-        { id: 'admin_orders' as const, label: '주문 관리', icon: Shield },
-        ...navItems.slice(6),
-      ]
+    ? [...navItems.slice(0, insertAt), ...adminItems, ...navItems.slice(insertAt)]
     : navItems
 
   return (
@@ -54,7 +59,7 @@ export function Sidebar({ activePage, onNavigate, isAdmin = false }: SidebarProp
 
       <nav className="flex flex-1 flex-col gap-1">
         {items.map(({ id, label, icon: Icon }) => {
-          const active = activePage === id
+          const active = isNavActive(id, activePage)
           return (
             <button
               key={id}

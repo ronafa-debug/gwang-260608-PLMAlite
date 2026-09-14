@@ -21,7 +21,14 @@ export function useStudents() {
     setError(null)
 
     if (isDemo) {
-      const stored = getStorageItem('demo_students', mockStudents)
+      const stored = getStorageItem('demo_students', mockStudents).map((student) => ({
+        ...student,
+        photoUrl:
+          student.photoUrl ??
+          (student.photo_path?.startsWith('data:') || student.photo_path?.startsWith('http')
+            ? student.photo_path
+            : null),
+      }))
       setStudents(stored)
       setLoading(false)
       return
@@ -52,6 +59,11 @@ export function useStudents() {
         ...input,
         id: crypto.randomUUID(),
         user_id: 'demo-user-001',
+        photo_path: input.photo_path ?? null,
+        photoUrl:
+          input.photo_path?.startsWith('data:') || input.photo_path?.startsWith('http')
+            ? input.photo_path
+            : null,
         created_at: new Date().toISOString(),
       }
       persistDemoStudents([created, ...students])
@@ -65,9 +77,23 @@ export function useStudents() {
 
   const editStudent = async (id: string, input: Partial<StudentInput>) => {
     if (isDemo) {
-      const updated = students.map((student) =>
-        student.id === id ? { ...student, ...input } : student,
-      )
+      const updated = students.map((student) => {
+        if (student.id !== id) return student
+        const next = { ...student, ...input }
+        const path =
+          input.photo_path !== undefined ? (input.photo_path ?? null) : (student.photo_path ?? null)
+        const photoUrl =
+          !path
+            ? null
+            : path.startsWith('data:') || path.startsWith('http')
+              ? path
+              : null
+        return {
+          ...next,
+          photo_path: path,
+          photoUrl,
+        }
+      })
       persistDemoStudents(updated)
       return updated.find((student) => student.id === id)!
     }
