@@ -10,6 +10,8 @@ export interface Student {
   photo_path?: string | null
   /** UI-only: signed or data URL for display */
   photoUrl?: string | null
+  /** Lower = higher in list (설정에서 ▲▼로 변경) */
+  sort_order?: number
   created_at: string
 }
 

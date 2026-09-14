@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { AdminContentPage } from '@/components/admin/AdminContentPage'
 import { AdminOrdersPage } from '@/components/admin/AdminOrdersPage'
+import { CommunityPage } from '@/components/community/CommunityPage'
 import { Dashboard } from '@/components/dashboard/Dashboard'
 import { MaterialsPage } from '@/components/materials/MaterialsPage'
 import { ClassroomToolsPage } from '@/components/tools/ClassroomToolsPage'
@@ -32,7 +33,8 @@ function SetupNotice() {
 
 function AppContent() {
   const { user, isDemo, isAdmin, signOut } = useAuth()
-  const { students, loading, error, addStudent, editStudent, removeStudent } = useStudents()
+  const { students, loading, error, addStudent, editStudent, removeStudent, moveStudent } =
+    useStudents()
   const { items, loading: libraryLoading } = useLibraryItems()
 
   const [page, setPage] = useState<AppPage>('dashboard')
@@ -100,6 +102,8 @@ function AppContent() {
         return <CheckoutPage onNavigate={goToPage} />
       case 'orders':
         return <OrdersPage onNavigate={goToPage} />
+      case 'community':
+        return <CommunityPage />
       case 'admin_orders':
         return isAdmin ? (
           <AdminOrdersPage />
@@ -123,6 +127,7 @@ function AppContent() {
             onAddStudent={addStudent}
             onEditStudent={editStudent}
             onDeleteStudent={removeStudent}
+            onMoveStudent={moveStudent}
           />
         )
       default:

@@ -26,12 +26,10 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
 
   const navigate = (page: AppPage) => {
     onNavigate(page)
     setMobileNavOpen(false)
-    setMoreOpen(false)
   }
 
   return (
@@ -82,13 +80,7 @@ export function AppShell({
         </main>
       </div>
 
-      <MobileBottomNav
-        activePage={activePage}
-        onNavigate={navigate}
-        isAdmin={isAdmin}
-        moreOpen={moreOpen}
-        onMoreOpenChange={setMoreOpen}
-      />
+      <MobileBottomNav activePage={activePage} onNavigate={navigate} />
     </div>
   )
 }

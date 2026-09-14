@@ -9,6 +9,7 @@ export type AppPage =
   | 'cart'
   | 'checkout'
   | 'orders'
+  | 'community'
   | 'admin_orders'
   | 'admin_content'
   | 'tools'

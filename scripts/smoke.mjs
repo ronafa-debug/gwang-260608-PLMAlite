@@ -28,6 +28,11 @@ const requiredPaths = [
   'supabase/migrations/007_order_cancel_after_admin_confirm.sql',
   'supabase/migrations/008_student_photos.sql',
   'supabase/migrations/009_admin_content_quality.sql',
+  'supabase/migrations/010_community.sql',
+  'supabase/migrations/011_student_sort_order.sql',
+  'src/components/community/CommunityPage.tsx',
+  'src/lib/communityApi.ts',
+  'src/types/community.ts',
 ]
 
 let failed = false

@@ -53,6 +53,13 @@ export const CLASSROOM_TOOL_CATEGORIES: Array<{
 
 export const CLASSROOM_TOOLS: ClassroomToolDef[] = [
   {
+    id: 'whiteboard',
+    label: '화이트보드',
+    description: '펜·도형·학생 얼굴 스탬프·페이지·PNG 저장',
+    category: 'util',
+    icon: Pencil,
+  },
+  {
     id: 'timer',
     label: '타이머',
     description: '활동·정리 시간 카운트다운 · 선택 BGM',
@@ -107,13 +114,6 @@ export const CLASSROOM_TOOLS: ClassroomToolDef[] = [
     description: '큰 화면 사칙연산',
     category: 'util',
     icon: Calculator,
-  },
-  {
-    id: 'whiteboard',
-    label: '화이트보드',
-    description: '칠판처럼 크게 적어 보여주기',
-    category: 'util',
-    icon: Pencil,
   },
   {
     id: 'sound_alert',

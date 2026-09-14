@@ -3,9 +3,11 @@ import { ArrowLeft, Construction, Search } from 'lucide-react'
 import { DiaryGenerator } from '@/components/diary/DiaryGenerator'
 import { StorytellingGenerator } from '@/components/storytelling/StorytellingGenerator'
 import { DemoNotice } from '@/components/shared/DemoNotice'
+import { FavoriteStarButton } from '@/components/shared/FavoriteStarButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/AuthContext'
+import { sortWithFavorites, useToolFavorites } from '@/hooks/useToolFavorites'
 import {
   MATERIAL_CATEGORIES,
   MATERIAL_TYPES,
@@ -37,6 +39,7 @@ export function MaterialGenerator({
   const { isDemo } = useAuth()
   const [category, setCategory] = useState<MaterialCategoryId>('all')
   const [query, setQuery] = useState('')
+  const { materialFavorites, isMaterialFavorite, toggleMaterialFavorite } = useToolFavorites()
 
   const view = entryMode
   const setView = (mode: 'catalog' | 'workspace') => {
@@ -47,7 +50,7 @@ export function MaterialGenerator({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return MATERIAL_TYPES.filter((item) => {
+    const list = MATERIAL_TYPES.filter((item) => {
       if (category !== 'all' && item.category !== category) return false
       if (!q) return true
       return (
@@ -55,7 +58,8 @@ export function MaterialGenerator({
         item.description.toLowerCase().includes(q)
       )
     })
-  }, [category, query])
+    return sortWithFavorites(list, materialFavorites)
+  }, [category, query, materialFavorites])
 
   const openType = (id: MaterialTypeId) => {
     onTabChange(id)
@@ -120,7 +124,8 @@ export function MaterialGenerator({
         <div>
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">개별 학습 자료</h1>
           <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-            만들 자료 유형을 고른 뒤 학생 맞춤으로 생성하세요.
+            만들 자료 유형을 고른 뒤 학생 맞춤으로 생성하세요. 별표로 즐겨찾기를 고정할 수
+            있습니다.
           </p>
         </div>
       ) : null}
@@ -165,32 +170,41 @@ export function MaterialGenerator({
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((item) => {
           const Icon = item.icon
+          const favorited = isMaterialFavorite(item.id)
           return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => openType(item.id)}
-              className="flex items-start gap-3 rounded-2xl border border-border/80 bg-card p-4 text-left shadow-sm transition-all hover:border-primary/25 hover:bg-muted/20 active:scale-[0.99] sm:gap-4 sm:p-5"
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold text-foreground">{item.label}</p>
-                  {item.available ? (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                      사용 가능
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                      준비 중
-                    </span>
-                  )}
+            <div key={item.id} className="relative">
+              <FavoriteStarButton
+                active={favorited}
+                label={item.label}
+                onToggle={() => toggleMaterialFavorite(item.id)}
+              />
+              <button
+                type="button"
+                onClick={() => openType(item.id)}
+                className="flex w-full items-start gap-3 rounded-2xl border border-border/80 bg-card p-4 pr-10 text-left shadow-sm transition-all hover:border-primary/25 hover:bg-muted/20 active:scale-[0.99] sm:gap-4 sm:p-5"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <p className="mt-0.5 text-sm text-muted-foreground">{item.description}</p>
-              </div>
-            </button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-foreground">{item.label}</p>
+                    {item.available ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                        사용 가능
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        준비 중
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </button>
+            </div>
           )
         })}
       </div>

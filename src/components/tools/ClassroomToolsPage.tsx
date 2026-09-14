@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ArrowLeft, Construction, Search, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { FavoriteStarButton } from '@/components/shared/FavoriteStarButton'
 import { AnalogClockTool } from '@/components/tools/AnalogClockTool'
 import { AttendanceTool } from '@/components/tools/AttendanceTool'
 import { CalculatorTool } from '@/components/tools/CalculatorTool'
@@ -28,6 +29,7 @@ import {
   type ClassroomToolId,
 } from '@/lib/classroomTools'
 import { WORK_TOOLS, getWorkTool, type WorkToolId } from '@/lib/workTools'
+import { sortWithFavorites, useToolFavorites } from '@/hooks/useToolFavorites'
 import { cn } from '@/lib/utils'
 
 type HubTab = 'class' | 'work'
@@ -96,17 +98,25 @@ function WorkToolWorkspace({ id }: { id: WorkToolId }) {
 export function ClassroomToolsPage() {
   const [hub, setHub] = useState<HubTab>('class')
   const [view, setView] = useState<View>('catalog')
-  const [classId, setClassId] = useState<ClassroomToolId>('timer')
+  const [classId, setClassId] = useState<ClassroomToolId>('whiteboard')
   const [workId, setWorkId] = useState<WorkToolId>('memo')
   const [category, setCategory] = useState<ClassroomToolCategoryId>('all')
   const [query, setQuery] = useState('')
+  const {
+    classFavorites,
+    workFavorites,
+    isClassFavorite,
+    isWorkFavorite,
+    toggleClassFavorite,
+    toggleWorkFavorite,
+  } = useToolFavorites()
 
   const classSelected = getClassroomTool(classId)
   const workSelected = getWorkTool(workId)
 
   const filteredClass = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return CLASSROOM_TOOLS.filter((item) => {
+    const filtered = CLASSROOM_TOOLS.filter((item) => {
       if (category !== 'all' && item.category !== category) return false
       if (!q) return true
       return (
@@ -114,18 +124,20 @@ export function ClassroomToolsPage() {
         item.description.toLowerCase().includes(q)
       )
     })
-  }, [category, query])
+    return sortWithFavorites(filtered, classFavorites)
+  }, [category, query, classFavorites])
 
   const filteredWork = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return WORK_TOOLS.filter((item) => {
+    const filtered = WORK_TOOLS.filter((item) => {
       if (!q) return true
       return (
         item.label.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q)
       )
     })
-  }, [query])
+    return sortWithFavorites(filtered, workFavorites)
+  }, [query, workFavorites])
 
   const switchHub = (next: HubTab) => {
     setHub(next)
@@ -175,7 +187,8 @@ export function ClassroomToolsPage() {
           <h1 className="text-2xl font-bold text-foreground">도구</h1>
         </div>
         <p className="mt-1 text-muted-foreground">
-          교실에서 쓰는 수업 도구와, 책상에서 쓰는 업무 도구를 모았습니다.
+          교실에서 쓰는 수업 도구와, 책상에서 쓰는 업무 도구를 모았습니다. 별표로 즐겨찾기를
+          고정할 수 있습니다.
         </p>
       </div>
 
@@ -236,57 +249,75 @@ export function ClassroomToolsPage() {
         {hub === 'class'
           ? filteredClass.map((tool) => {
               const Icon = tool.icon
+              const favorited = isClassFavorite(tool.id)
               return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => {
-                    setClassId(tool.id)
-                    setView('workspace')
-                  }}
-                  className="flex items-start gap-3 rounded-2xl border border-border/80 bg-card p-4 text-left shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/30"
-                >
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground">{tool.label}</p>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{tool.description}</p>
-                  </div>
-                </button>
+                <div key={tool.id} className="relative">
+                  <FavoriteStarButton
+                    active={favorited}
+                    label={tool.label}
+                    onToggle={() => toggleClassFavorite(tool.id)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClassId(tool.id)
+                      setView('workspace')
+                    }}
+                    className="flex w-full items-start gap-3 rounded-2xl border border-border/80 bg-card p-4 pr-10 text-left shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/30"
+                  >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground">{tool.label}</p>
+                      <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
+                        {tool.description}
+                      </p>
+                    </div>
+                  </button>
+                </div>
               )
             })
           : filteredWork.map((tool) => {
               const Icon = tool.icon
+              const favorited = isWorkFavorite(tool.id)
               return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => {
-                    setWorkId(tool.id)
-                    setView('workspace')
-                  }}
-                  className="flex items-start gap-3 rounded-2xl border border-border/80 bg-card p-4 text-left shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/30"
-                >
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-foreground">{tool.label}</p>
-                      {tool.available ? (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                          사용 가능
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          준비 중
-                        </span>
-                      )}
+                <div key={tool.id} className="relative">
+                  <FavoriteStarButton
+                    active={favorited}
+                    label={tool.label}
+                    onToggle={() => toggleWorkFavorite(tool.id)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWorkId(tool.id)
+                      setView('workspace')
+                    }}
+                    className="flex w-full items-start gap-3 rounded-2xl border border-border/80 bg-card p-4 pr-10 text-left shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/30"
+                  >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{tool.description}</p>
-                  </div>
-                </button>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-foreground">{tool.label}</p>
+                        {tool.available ? (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                            사용 가능
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            준비 중
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
+                        {tool.description}
+                      </p>
+                    </div>
+                  </button>
+                </div>
               )
             })}
       </div>

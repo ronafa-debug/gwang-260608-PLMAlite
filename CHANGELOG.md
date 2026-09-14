@@ -95,6 +95,7 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 ### 학생 · AI 학습 자료
 - 학생 CRUD  
 - **학생 사진 (선택)** — `photo_path`, Storage 버킷 `student-photos` (`008`)  
+- **학생 목록 순서** — `sort_order`, 설정에서 ▲▼ (`011`)  
 - 스토리텔링 / 그림일기 생성 (`/api/generate-*`, OpenAI)  
 - 라이브러리 저장 · 미리보기 · 삭제  
 - PDF (`html2canvas` / `jsPDF`, oklch 캡처 보정)  
@@ -112,6 +113,7 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 | `003_auth_user_isolation.sql` | Auth · RLS · user_id |
 | `008_student_photos.sql` | students.photo_path · student-photos 버킷 |
 | `009_admin_content_quality.sql` | 관리자 전체 자료 조회 · generation_events |
+| `011_student_sort_order.sql` | students.sort_order (목록 ▲▼) |
 
 ### 관리자 콘텐츠·품질 (2026-09)
 - 메뉴 **콘텐츠 · 품질** (`admin_content`) — 관리자만  
@@ -122,6 +124,27 @@ update public.profiles set role = 'admin' where email = 'your@email.com';
 - 그림일기 저장 시 미존재 `sticker_images` 컬럼 제거  
 - 라이브러리 생성일 시간 표시  
 - Vercel 환경 변수 변경 후 Redeploy 필요 (`OPENAI_API_KEY` 등)
+
+---
+
+## [커뮤니티 · 화이트보드 · 학생순서] 2026-09
+
+- 커뮤니티: 자료 공유 피드 + Q&A/팁 게시판 + 댓글 (`010`)
+- 모바일 내비: 커뮤니티 탭 · 더보기→설정 직행 · 학습 라벨「자료」
+- 즐겨찾기 별(도구·학습 자료) · 설명 한 줄 truncate
+- 화이트보드 고도화 + 학생 원형 얼굴 스탬프 · 목록 맨 앞 배치
+- 학생 `sort_order` (`011`) · 「순서 바꾸기」토글 후 ▲▼
+
+---
+
+## [커뮤니티] 2026-09 — 자료 공유 피드 + 주제 게시판
+
+- 메뉴 **커뮤니티** (사이드바: 학습 자료 다음 · 스토어 위) — 탭: 자료 공유 · 질문·답변 · 수업 팁
+- 모바일 하단 탭에 커뮤니티 아이콘 포함
+- 핵심: 내 학습 자료 스냅샷 공유 + 댓글 소통
+- 마이그레이션 `010_community.sql` (`community_posts`, `community_comments`, RLS)
+- 데모: 샘플 글 localStorage (`communityApi.ts`)
+- UI: `src/components/community/CommunityPage.tsx`
 
 ---
 

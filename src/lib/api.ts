@@ -137,7 +137,8 @@ export async function fetchStudents(): Promise<Student[]> {
   const { data, error } = await client
     .from('students')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
 
   if (error) throw new Error(error.message)
   const rows = (data ?? []) as Student[]
@@ -147,6 +148,18 @@ export async function fetchStudents(): Promise<Student[]> {
 export async function createStudent(input: StudentInput): Promise<Student> {
   const client = requireSupabase()
   const userId = await requireUserId()
+
+  const { data: maxRow } = await client
+    .from('students')
+    .select('sort_order')
+    .eq('user_id', userId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const nextOrder =
+    typeof maxRow?.sort_order === 'number' ? maxRow.sort_order + 1 : 0
+
   const { data, error } = await client
     .from('students')
     .insert({
@@ -156,6 +169,7 @@ export async function createStudent(input: StudentInput): Promise<Student> {
       favorite_activity: input.favorite_activity,
       notes: input.notes ?? null,
       photo_path: input.photo_path ?? null,
+      sort_order: input.sort_order ?? nextOrder,
       user_id: userId,
     })
     .select()
@@ -181,6 +195,7 @@ export async function updateStudent(
   }
   if (input.notes !== undefined) payload.notes = input.notes
   if (input.photo_path !== undefined) payload.photo_path = input.photo_path
+  if (input.sort_order !== undefined) payload.sort_order = input.sort_order
 
   const { data, error } = await client
     .from('students')
@@ -191,6 +206,20 @@ export async function updateStudent(
 
   if (error) throw new Error(error.message)
   return withPhotoUrl(data as Student)
+}
+
+/** Persist full list order (0..n-1). */
+export async function saveStudentSortOrder(
+  orderedIds: string[],
+): Promise<void> {
+  const client = requireSupabase()
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      client.from('students').update({ sort_order: index }).eq('id', id),
+    ),
+  )
+  const failed = results.find((r) => r.error)
+  if (failed?.error) throw new Error(failed.error.message)
 }
 
 export async function deleteStudent(id: string): Promise<void> {

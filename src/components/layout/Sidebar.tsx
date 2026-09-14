@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Leaf,
   LineChart,
+  MessagesSquare,
   Settings,
   ShoppingBag,
   Sparkles,
@@ -16,6 +17,7 @@ const navItems: Array<{ id: AppPage; label: string; icon: typeof LayoutDashboard
   { id: 'dashboard', label: '대시보드', icon: LayoutDashboard },
   { id: 'tools', label: '도구', icon: Wrench },
   { id: 'generate', label: '개별 학습 자료', icon: Sparkles },
+  { id: 'community', label: '커뮤니티', icon: MessagesSquare },
   { id: 'store', label: '스토어', icon: ShoppingBag },
   { id: 'settings', label: '설정', icon: Settings },
 ]
@@ -38,7 +40,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, onNavigate, isAdmin = false }: SidebarProps) {
-  // Insert admin items after 스토어
+  // Insert admin items after 스토어 (설정 앞)
   const storeIndex = navItems.findIndex((item) => item.id === 'store')
   const insertAt = storeIndex >= 0 ? storeIndex + 1 : navItems.length
   const items = isAdmin

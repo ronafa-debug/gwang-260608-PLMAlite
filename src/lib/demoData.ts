@@ -20,6 +20,7 @@ export const mockStudents: Student[] = [
     notes: '자동차를 좋아합니다.',
     photo_path: null,
     photoUrl: null,
+    sort_order: 0,
     created_at: new Date().toISOString(),
   },
   {
@@ -32,6 +33,7 @@ export const mockStudents: Student[] = [
     notes: null,
     photo_path: null,
     photoUrl: null,
+    sort_order: 1,
     created_at: new Date().toISOString(),
   },
   {
@@ -44,6 +46,7 @@ export const mockStudents: Student[] = [
     notes: '게임을 좋아합니다.',
     photo_path: null,
     photoUrl: null,
+    sort_order: 2,
     created_at: new Date().toISOString(),
   },
 ]

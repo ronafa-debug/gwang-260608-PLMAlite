@@ -32,6 +32,7 @@ interface SettingsPageProps {
   onAddStudent: (input: StudentInput) => Promise<unknown>
   onEditStudent: (id: string, input: Partial<StudentInput>) => Promise<unknown>
   onDeleteStudent: (id: string) => Promise<void>
+  onMoveStudent: (id: string, direction: 'up' | 'down') => Promise<void>
 }
 
 const tabs: Array<{ id: SettingsTab; label: string }> = [
@@ -48,6 +49,7 @@ export function SettingsPage({
   onAddStudent,
   onEditStudent,
   onDeleteStudent,
+  onMoveStudent,
 }: SettingsPageProps) {
   const { user, isDemo, updateDisplayName } = useAuth()
   const [nameInput, setNameInput] = useState(user?.name ?? '선생님')
@@ -246,6 +248,7 @@ export function SettingsPage({
           onAdd={onAddStudent}
           onEdit={onEditStudent}
           onDelete={onDeleteStudent}
+          onMove={onMoveStudent}
         />
       )}
     </div>

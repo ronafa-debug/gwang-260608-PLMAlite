@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ImagePlus, UserRound } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowUpDown, Check, ChevronDown, ChevronUp, ImagePlus, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useAuth } from '@/contexts/AuthContext'
 import { uploadStudentPhoto } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import type { Student, StudentInput } from '@/types'
 
 const emptyForm: StudentInput = {
@@ -33,6 +34,7 @@ interface StudentManagementProps {
   onAdd: (input: StudentInput) => Promise<unknown>
   onEdit: (id: string, input: Partial<StudentInput>) => Promise<unknown>
   onDelete: (id: string) => Promise<void>
+  onMove: (id: string, direction: 'up' | 'down') => Promise<void>
   /** When true, omit page-level title (used inside 설정). */
   embedded?: boolean
 }
@@ -44,6 +46,7 @@ export function StudentManagement({
   onAdd,
   onEdit,
   onDelete,
+  onMove,
   embedded = false,
 }: StudentManagementProps) {
   const { isDemo } = useAuth()
@@ -56,6 +59,12 @@ export function StudentManagement({
   const [formError, setFormError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [movingId, setMovingId] = useState<string | null>(null)
+  const [reorderMode, setReorderMode] = useState(false)
+
+  useEffect(() => {
+    if (students.length <= 1 && reorderMode) setReorderMode(false)
+  }, [students.length, reorderMode])
 
   const resetForm = () => {
     setForm(emptyForm)
@@ -156,6 +165,17 @@ export function StudentManagement({
     }
   }
 
+  const handleMove = async (id: string, direction: 'up' | 'down') => {
+    setMovingId(id)
+    try {
+      await onMove(id, direction)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : '순서 변경에 실패했습니다.')
+    } finally {
+      setMovingId(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -163,24 +183,51 @@ export function StudentManagement({
           <div>
             <h2 className="text-lg font-semibold text-foreground">학생 목록</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              등록된 학생을 확인하고 맞춤 학습에 활용하세요.
+              {reorderMode
+                ? '▲▼로 순서를 바꾼 뒤 「완료」를 눌러 주세요. 뽑기·화이트보드·출석에도 반영됩니다.'
+                : '등록된 학생을 확인하고 맞춤 학습에 활용하세요.'}
             </p>
           </div>
         ) : (
           <div>
             <h1 className="text-xl font-bold text-foreground sm:text-2xl">학생 관리</h1>
             <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-              등록된 학생을 확인하고 맞춤 학습에 활용하세요.
+              {reorderMode
+                ? '▲▼로 순서를 바꾼 뒤 「완료」를 눌러 주세요. 뽑기·화이트보드·출석에도 반영됩니다.'
+                : '등록된 학생을 확인하고 맞춤 학습에 활용하세요.'}
             </p>
           </div>
         )}
-        <Button
-          type="button"
-          className="h-11 shrink-0 rounded-2xl px-5"
-          onClick={openCreate}
-        >
-          학생 등록
-        </Button>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {students.length > 1 ? (
+            <Button
+              type="button"
+              variant={reorderMode ? 'default' : 'outline'}
+              className="h-11 rounded-2xl px-4"
+              onClick={() => setReorderMode((v) => !v)}
+            >
+              {reorderMode ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  완료
+                </>
+              ) : (
+                <>
+                  <ArrowUpDown className="h-4 w-4" />
+                  순서 바꾸기
+                </>
+              )}
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            className="h-11 rounded-2xl px-5"
+            disabled={reorderMode}
+            onClick={openCreate}
+          >
+            학생 등록
+          </Button>
+        </div>
       </div>
 
       <Card className="border-0 shadow-sm">
@@ -197,19 +244,51 @@ export function StudentManagement({
           ) : null}
           {!loading && !error && students.length > 0 ? (
             <div className="space-y-3">
-              {students.map((student) => {
+              {students.map((student, index) => {
                 const photo =
                   student.photoUrl ??
                   (student.photo_path?.startsWith('data:') ||
                   student.photo_path?.startsWith('http')
                     ? student.photo_path
                     : null)
+                const busy = movingId === student.id
                 return (
                   <div
                     key={student.id}
-                    className="flex items-start justify-between gap-3 rounded-2xl border border-border/80 bg-card p-4"
+                    className={cn(
+                      'flex items-start justify-between gap-3 rounded-2xl border border-border/80 bg-card p-4',
+                      reorderMode && 'ring-1 ring-primary/15',
+                    )}
                   >
                     <div className="flex min-w-0 flex-1 items-start gap-3">
+                      {reorderMode ? (
+                        <div className="flex shrink-0 flex-col gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 rounded-lg p-0"
+                            aria-label={`${student.name} 위로`}
+                            title="위로"
+                            disabled={busy || index === 0}
+                            onClick={() => void handleMove(student.id, 'up')}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 rounded-lg p-0"
+                            aria-label={`${student.name} 아래로`}
+                            title="아래로"
+                            disabled={busy || index === students.length - 1}
+                            onClick={() => void handleMove(student.id, 'down')}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : null}
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted text-muted-foreground ring-1 ring-border/70">
                         {photo ? (
                           <img
@@ -223,6 +302,9 @@ export function StudentManagement({
                       </div>
                       <div className="min-w-0 space-y-1">
                         <p className="font-semibold text-foreground">
+                          <span className="mr-1.5 text-sm font-medium text-muted-foreground">
+                            {index + 1}.
+                          </span>
                           {student.name}{' '}
                           <span className="text-sm font-normal text-muted-foreground">
                             ({student.grade})
@@ -241,7 +323,12 @@ export function StudentManagement({
                         ) : null}
                       </div>
                     </div>
-                    <div className="flex shrink-0 flex-col gap-2">
+                    <div
+                      className={cn(
+                        'flex shrink-0 flex-col gap-2 transition-opacity',
+                        reorderMode && 'pointer-events-none opacity-35',
+                      )}
+                    >
                       <Button
                         type="button"
                         variant="outline"
@@ -249,6 +336,7 @@ export function StudentManagement({
                         className="h-9 w-9 rounded-xl p-0 text-base"
                         aria-label="수정"
                         title="수정"
+                        disabled={reorderMode}
                         onClick={() => openEdit(student)}
                       >
                         ✏️
@@ -260,6 +348,7 @@ export function StudentManagement({
                         className="h-9 w-9 rounded-xl p-0 text-base"
                         aria-label="삭제"
                         title="삭제"
+                        disabled={reorderMode}
                         onClick={() => requestDelete(student)}
                       >
                         🗑️

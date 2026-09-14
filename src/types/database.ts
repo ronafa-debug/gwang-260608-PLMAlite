@@ -11,6 +11,7 @@ export interface Database {
           favorite_activity: string
           notes: string | null
           photo_path: string | null
+          sort_order: number
           created_at: string
         }
         Insert: {
@@ -22,6 +23,7 @@ export interface Database {
           favorite_activity: string
           notes?: string | null
           photo_path?: string | null
+          sort_order?: number
           created_at?: string
         }
         Update: {
@@ -33,6 +35,7 @@ export interface Database {
           favorite_activity?: string
           notes?: string | null
           photo_path?: string | null
+          sort_order?: number
           created_at?: string
         }
       }
